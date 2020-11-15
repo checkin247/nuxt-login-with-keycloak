@@ -45,11 +45,61 @@ export default {
     // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
     // https://go.nuxtjs.dev/pwa
-    '@nuxtjs/pwa'
+    '@nuxtjs/pwa',
+    '@nuxtjs/auth-next',
+    '@nuxtjs/proxy'
   ],
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
-  axios: {},
+  axios: {
+    proxy: true
+  },
+
+  router: {
+    middleware: ['auth']
+  },
+
+  // auth
+  auth: {
+    strategies: {
+      local: false,
+      keycloak: {
+        scheme: 'oauth2',
+        endpoints: {
+          authorization: '/auth/realms/demo/protocol/openid-connect/auth',
+          token: '/auth/realms/demo/protocol/openid-connect/token',
+          userInfo: '/auth/realms/demo/protocol/openid-connect/userinfo',
+          logout: '/auth/realms/demo/protocol/openid-connect/logout?redirect_uri=' + encodeURIComponent('https://localhost:3000')
+        },
+        token: {
+          property: 'access_token',
+          type: 'Bearer',
+          name: 'Authorization',
+          maxAge: 300
+        },
+        refreshToken: {
+          property: 'refresh_token',
+          maxAge: 60 * 60 * 24 * 30
+        },
+        responseType: 'code',
+        grantType: 'authorization_code',
+        clientId: 'nuxt-login-with-keycloak',
+        scope: ['openid', 'profile', 'email'],
+        codeChallengeMethod: 'S256'
+      }
+    },
+    redirect: {
+      login: '/login',
+      logout: '/',
+      home: '/'
+    }
+  },
+
+  proxy: {
+    '/auth': {
+      target: 'http://localhost:8080'
+    }
+  },
 
   // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
   vuetify: {
